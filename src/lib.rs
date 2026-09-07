@@ -487,14 +487,21 @@ pub struct VersionCheckRequest {
 pub struct VersionCheckResponse {
     #[serde(default)]
     pub url: String,
+    #[serde(default)]
+    pub html_url: String,
+    #[serde(default)]
+    pub tag_name: String,
 }
 
 pub const VER_TYPE_RUSTDESK_CLIENT: &str = "rustdesk-client";
 pub const VER_TYPE_RUSTDESK_SERVER: &str = "rustdesk-server";
+pub const CLIENT_RELEASES_REPOSITORY: &str = "144132/rustdesk";
+pub const CLIENT_RELEASES_URL: &str = "https://github.com/144132/rustdesk/releases";
+pub const CLIENT_VERSION_CHECK_URL: &str =
+    "https://api.github.com/repos/144132/rustdesk/releases/latest";
+const OFFICIAL_VERSION_CHECK_URL: &str = "https://api.rustdesk.com/version/latest";
 
 pub fn version_check_request(typ: String) -> (VersionCheckRequest, String) {
-    const URL: &str = "https://api.rustdesk.com/version/latest";
-
     use sysinfo::System;
     let system = System::new();
     let os = system.distribution_id();
@@ -502,6 +509,11 @@ pub fn version_check_request(typ: String) -> (VersionCheckRequest, String) {
     let arch = std::env::consts::ARCH.to_string();
     #[allow(deprecated)]
     let device_id = fingerprint::get_fingerprint(None, None);
+    let url = if typ == VER_TYPE_RUSTDESK_CLIENT {
+        CLIENT_VERSION_CHECK_URL.to_owned()
+    } else {
+        OFFICIAL_VERSION_CHECK_URL.to_owned()
+    };
     (
         VersionCheckRequest {
             os,
@@ -510,7 +522,7 @@ pub fn version_check_request(typ: String) -> (VersionCheckRequest, String) {
             device_id,
             typ,
         },
-        URL.to_string(),
+        url,
     )
 }
 
@@ -629,5 +641,33 @@ mod test {
         assert_eq!(get_version_number("1.1.10-1"), 1001101);
         assert_eq!(get_version_number("1.1.11-1"), 1001111);
         assert_eq!(get_version_number("1.2.3"), 1002030);
+    }
+
+    #[test]
+    fn test_github_release_response_fields() {
+        let response: VersionCheckResponse = serde_json::from_str(
+            r#"{
+                "tag_name": "1.5.0",
+                "html_url": "https://github.com/144132/rustdesk/releases/tag/1.5.0",
+                "url": "https://api.github.com/repos/144132/rustdesk/releases/1"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(response.tag_name, "1.5.0");
+        assert_eq!(
+            response.html_url,
+            "https://github.com/144132/rustdesk/releases/tag/1.5.0"
+        );
+        assert_eq!(
+            response.url,
+            "https://api.github.com/repos/144132/rustdesk/releases/1"
+        );
+    }
+
+    #[test]
+    fn test_client_version_check_uses_fork_release_api() {
+        let (_, url) = version_check_request(VER_TYPE_RUSTDESK_CLIENT.to_owned());
+        assert_eq!(url, CLIENT_VERSION_CHECK_URL);
     }
 }

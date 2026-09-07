@@ -106,8 +106,8 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+pub const RENDEZVOUS_SERVERS: &[&str] = &["rustdesk.szxinyu.com"];
+pub const RS_PUB_KEY: &str = "GTUSGqPeHtD16AYR2hBYC3K1ORkfNrd8ZZYXmFoB21w=";
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -1077,6 +1077,10 @@ impl Config {
 
     pub fn get_options() -> HashMap<String, String> {
         let mut res = DEFAULT_SETTINGS.read().unwrap().clone();
+        if let Some(value) = default_option(keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION) {
+            let key = keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION;
+            res.entry(key.to_owned()).or_insert_with(|| value.to_owned());
+        }
         res.extend(CONFIG2.read().unwrap().options.clone());
         res.extend(OVERWRITE_SETTINGS.read().unwrap().clone());
         res
@@ -1104,6 +1108,7 @@ impl Config {
             &DEFAULT_SETTINGS,
             k,
         )
+        .or_else(|| default_option(k).map(str::to_owned))
         .unwrap_or_default()
     }
 
@@ -2473,6 +2478,14 @@ fn get_or(
 }
 
 #[inline]
+fn default_option(key: &str) -> Option<&'static str> {
+    match key {
+        keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION => Some("Y"),
+        _ => None,
+    }
+}
+
+#[inline]
 fn is_option_can_save(
     overwrite: &RwLock<HashMap<String, String>>,
     k: &str,
@@ -2977,6 +2990,15 @@ impl Status {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_remote_configuration_modification_default_is_enabled() {
+        assert_eq!(
+            default_option(keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION),
+            Some("Y")
+        );
+        assert_eq!(default_option("unknown-option"), None);
+    }
 
     #[test]
     fn test_serialize() {
