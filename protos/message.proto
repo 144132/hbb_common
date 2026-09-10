@@ -110,6 +110,7 @@ message Features {
   bool privacy_mode = 1;
   bool terminal = 2;
   bool port_forward_mux = 3;
+  bool software_install = 4;
 }
 
 message CodecAbility {
@@ -995,6 +996,71 @@ message PortForwardChannel {
   }
 }
 
+enum SoftwareInstallerType {
+  UnknownInstaller = 0;
+  Msi = 1;
+  Exe = 2;
+}
+
+enum SoftwareDetectionType {
+  UnknownDetection = 0;
+  MsiProductCode = 1;
+  UninstallDisplayName = 2;
+  ExePath = 3;
+}
+
+enum SoftwareInstallMode {
+  UnknownInstallMode = 0;
+  DownloadOnly = 1;
+  DownloadAndInstall = 2;
+}
+
+message SoftwareInstallRequest {
+  string request_id = 1;
+  string software_name = 2;
+  string package_url = 3;
+  string sha256 = 4;
+  SoftwareInstallerType installer_type = 5;
+  SoftwareDetectionType detection_type = 6;
+  string detection_value = 7;
+  repeated string silent_args = 8;
+  SoftwareInstallMode mode = 9;
+}
+
+message SoftwareInstallCancel {
+  string request_id = 1;
+}
+
+message SoftwareInstallAction {
+  oneof union {
+    SoftwareInstallRequest request = 1;
+    SoftwareInstallCancel cancel = 2;
+  }
+}
+
+enum SoftwareInstallStage {
+  UnknownInstallStage = 0;
+  Queued = 1;
+  Downloading = 2;
+  Verifying = 3;
+  Downloaded = 4;
+  Detecting = 5;
+  Installing = 6;
+  AlreadyInstalled = 7;
+  Success = 8;
+  NeedsReboot = 9;
+  Failed = 10;
+}
+
+message SoftwareInstallStatus {
+  string request_id = 1;
+  SoftwareInstallStage stage = 2;
+  string message = 3;
+  optional int32 exit_code = 4;
+  bool needs_reboot = 5;
+  optional uint32 progress_percent = 6;
+}
+
 message Message {
   oneof union {
     SignedId signed_id = 3;
@@ -1028,5 +1094,7 @@ message Message {
     TerminalAction terminal_action = 31;
     TerminalResponse terminal_response = 32;
     PortForwardChannel port_forward_channel = 33;
+    SoftwareInstallAction software_install_action = 34;
+    SoftwareInstallStatus software_install_status = 35;
   }
 }
