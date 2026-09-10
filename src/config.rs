@@ -2762,6 +2762,7 @@ fn get_or(
 fn default_option(key: &str) -> Option<&'static str> {
     match key {
         keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION => Some("Y"),
+        keys::OPTION_ALLOW_REMOTE_SOFTWARE_INSTALL => Some("N"),
         _ => None,
     }
 }
@@ -2926,6 +2927,7 @@ pub mod keys {
     pub const OPTION_ALLOW_SCOPE_VIOLATION_CLOSE: &str = "allow-scope-violation-close";
     pub const OPTION_ALLOW_SCOPE_VIOLATION_ALARM: &str = "allow-scope-violation-alarm";
     pub const OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION: &str = "allow-remote-config-modification";
+    pub const OPTION_ALLOW_REMOTE_SOFTWARE_INSTALL: &str = "allow-remote-software-install";
     pub const OPTION_ALLOW_NUMERNIC_ONE_TIME_PASSWORD: &str = "allow-numeric-one-time-password";
     pub const OPTION_ENABLE_LAN_DISCOVERY: &str = "enable-lan-discovery";
     pub const OPTION_DIRECT_SERVER: &str = "direct-server";
@@ -3179,6 +3181,7 @@ pub mod keys {
         OPTION_ALLOW_SCOPE_VIOLATION_CLOSE,
         OPTION_ALLOW_SCOPE_VIOLATION_ALARM,
         OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION,
+        OPTION_ALLOW_REMOTE_SOFTWARE_INSTALL,
         OPTION_ALLOW_NUMERNIC_ONE_TIME_PASSWORD,
         OPTION_ENABLE_LAN_DISCOVERY,
         OPTION_DIRECT_SERVER,
@@ -3387,6 +3390,10 @@ mod tests {
         assert_eq!(
             default_option(keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION),
             Some("Y")
+        );
+        assert_eq!(
+            default_option(keys::OPTION_ALLOW_REMOTE_SOFTWARE_INSTALL),
+            Some("N")
         );
         assert_eq!(default_option("unknown-option"), None);
     }
