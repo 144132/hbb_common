@@ -1171,6 +1171,9 @@ impl Config {
     }
 
     pub fn is_disable_change_permanent_password() -> bool {
+        #[cfg(target_os = "android")]
+        return true;
+        #[cfg(not(target_os = "android"))]
         BUILTIN_SETTINGS
             .read()
             .unwrap()
@@ -1296,6 +1299,14 @@ impl Config {
         if Self::is_disable_change_permanent_password() {
             return false;
         }
+        Self::set_permanent_password_forced(password)
+    }
+
+    /// Sets the permanent password for trusted installation-time provisioning.
+    ///
+    /// This bypasses the user-facing change policy so a platform can establish its mandatory
+    /// initial password before the platform locks further changes.
+    pub fn set_permanent_password_forced(password: &str) -> bool {
         let (preset_storage, preset_salt) = Self::get_preset_password_storage_and_salt();
         if preset_permanent_password_storage_matches_plain(&preset_storage, &preset_salt, password)
         {
