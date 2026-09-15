@@ -2773,7 +2773,7 @@ fn get_or(
 fn default_option(key: &str) -> Option<&'static str> {
     match key {
         keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION => Some("Y"),
-        keys::OPTION_ALLOW_REMOTE_SOFTWARE_INSTALL => Some("N"),
+        keys::OPTION_ALLOW_REMOTE_SOFTWARE_INSTALL => Some("Y"),
         _ => None,
     }
 }
@@ -3404,7 +3404,7 @@ mod tests {
         );
         assert_eq!(
             default_option(keys::OPTION_ALLOW_REMOTE_SOFTWARE_INSTALL),
-            Some("N")
+            Some("Y")
         );
         assert_eq!(default_option("unknown-option"), None);
     }
